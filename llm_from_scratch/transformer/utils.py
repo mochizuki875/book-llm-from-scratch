@@ -17,6 +17,7 @@ def layer_norm(x: Tensor, eps=1e-6):
     )
 
 
+# 入力を学習パラメータ付きで標準化
 class LayerNorm(nn.Module):
     def __init__(self, d_model: int, eps=1e-6):
         """Layer 正規化.
@@ -25,14 +26,14 @@ class LayerNorm(nn.Module):
             eps (float): ゼロ除算防止のための微小値
         """
         super().__init__()
-        self.gamma = nn.Parameter(torch.ones(d_model))
-        self.beta = nn.Parameter(torch.zeros(d_model))
-        self.eps = eps
+        self.gamma = nn.Parameter(torch.ones(d_model)) # 倍率(学習パラメータ)
+        self.beta = nn.Parameter(torch.zeros(d_model)) # シフト(学習パラメータ)
+        self.eps = eps # ゼロ除算防止のための微小値
 
     def forward(self, x: Tensor) -> Tensor:
         mean = x.mean(-1, keepdim=True)
         std = x.std(-1, keepdim=True, unbiased=False)
-        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+        return self.gamma * (x - mean) / (std + self.eps) + self.beta # 標準化してから学習パラメータでスケーリングとシフトを行う
 
 
 def sinusoidal_position_encoding(d_model: int, sequence_length: int) -> Tensor:
@@ -50,14 +51,18 @@ def sinusoidal_position_encoding(d_model: int, sequence_length: int) -> Tensor:
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model: int, max_sequence_length: int):
+    # max_sequence_length文字目までの位置エンコーディングを計算し行列を作成
+    # peではmax_sequence_length番目までを表現できる
+    def __init__(self, d_model: int, max_sequence_length: int): 
         super().__init__()
         pe = sinusoidal_position_encoding(d_model, max_sequence_length)
         # 値を最適化しないので register_buffer で登録
         self.scale = math.sqrt(d_model)
         self.register_buffer("pe", pe)
-
+    # 入力xに位置エンコーディングを足す
     def forward(self, x: Tensor) -> Tensor:
         sequence_length = x.size(1)
+        # 埋め込みベクトルに位置エンコーディングを足す
+        #  sqrt(d_model)でスケーリングするのは、埋め込みベクトルの値が大きくなりすぎないようにするため
         x = x * self.scale + self.pe[:, :sequence_length]
         return x

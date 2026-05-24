@@ -66,7 +66,7 @@ class AttentionHead(nn.Module):
             d_model (int): モデルの埋め込み次元数
         """
         super().__init__()
-        # クエリ, キー, バリューを部分空間に埋め込むための全結合層
+        # 入力をQ, K, Vに変換するための全結合層を定義
         self.linear_q = nn.Linear(d_model, d_k)
         self.linear_k = nn.Linear(d_model, d_k)
         self.linear_v = nn.Linear(d_model, d_v)

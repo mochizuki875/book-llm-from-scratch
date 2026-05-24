@@ -1,5 +1,7 @@
 # LLM from Scratch
 
+**On NVIDIA DGX Spark**
+
 <table>
 <tr>
 <td width="200">
